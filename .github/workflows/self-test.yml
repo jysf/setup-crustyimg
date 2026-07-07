@@ -26,10 +26,10 @@ jobs:
         shell: bash
         run: crustyimg --version
 
-      - name: lint a clean asset (exit 0)
-        shell: bash
-        run: crustyimg lint test-assets/clean.png
-
+      # This action is generic — it installs the binary, so any crustyimg command
+      # works. We pin v0.3.1 here; `lint` ships in 0.4.0, so we exercise `optimize`
+      # (present in v0.3.1) as the smoke test. With `version: latest` (once 0.4.0
+      # is out) `crustyimg lint` is equally available.
       - name: optimize a clean asset (writes an output)
         shell: bash
         run: |
