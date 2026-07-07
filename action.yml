@@ -1,0 +1,86 @@
+name: Setup crustyimg
+description: >-
+  Install the crustyimg image CLI (via its official cargo-dist installer, with
+  checksum verification) and add it to PATH — enabling optimize/convert/lint in CI.
+author: jysf
+branding:
+  icon: image
+  color: orange
+
+inputs:
+  version:
+    description: 'crustyimg release to install: a tag like "v0.4.0" (or "0.4.0"), or "latest".'
+    required: false
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    # Resolve "latest" (and bare "0.4.0") to a concrete release tag, so the cache
+    # key is stable and both installers pin the same version. Runs in bash, which
+    # is present on all three GitHub-hosted runners.
+    - name: Resolve crustyimg release tag
+      id: resolve
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        v='${{ inputs.version }}'
+        case "$v" in
+          latest)
+            v="$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+                   https://api.github.com/repos/jysf/crustyimg/releases/latest \
+                 | grep -m1 '"tag_name"' \
+                 | sed -E 's/.*"tag_name"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')"
+            ;;
+          v*) : ;;                 # already a tag
+          [0-9]*) v="v$v" ;;       # bare semver → prefix v
+        esac
+        if [ -z "$v" ]; then
+          echo "::error::could not resolve a crustyimg release tag for '${{ inputs.version }}'"
+          exit 1
+        fi
+        echo "tag=$v" >> "$GITHUB_OUTPUT"
+        echo "crustyimg version: $v"
+
+    # Cache the installed binary under the runner tool-cache, keyed on the
+    # resolved tag + os/arch. `runner.tool_cache` is a GitHub expression, so the
+    # path is already native per-OS (no bash/pwsh path juggling).
+    - name: Cache crustyimg
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.tool_cache }}/crustyimg/${{ steps.resolve.outputs.tag }}
+        key: crustyimg-${{ runner.os }}-${{ runner.arch }}-${{ steps.resolve.outputs.tag }}
+
+    # The cargo-dist installer detects os/arch, verifies the sha256 checksum, and
+    # installs to $CRUSTYIMG_INSTALL_DIR/bin. NO_MODIFY_PATH keeps it from editing
+    # profiles — this action owns the PATH step below.
+    - name: Install crustyimg (Unix)
+      if: runner.os != 'Windows' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        CRUSTYIMG_INSTALL_DIR: ${{ runner.tool_cache }}/crustyimg/${{ steps.resolve.outputs.tag }}
+        CRUSTYIMG_NO_MODIFY_PATH: '1'
+      run: |
+        set -euo pipefail
+        curl --proto '=https' --tlsv1.2 -fsSL \
+          "https://github.com/jysf/crustyimg/releases/download/${{ steps.resolve.outputs.tag }}/crustyimg-installer.sh" \
+          | sh
+
+    - name: Install crustyimg (Windows)
+      if: runner.os == 'Windows' && steps.cache.outputs.cache-hit != 'true'
+      shell: pwsh
+      env:
+        CRUSTYIMG_INSTALL_DIR: ${{ runner.tool_cache }}/crustyimg/${{ steps.resolve.outputs.tag }}
+        CRUSTYIMG_NO_MODIFY_PATH: '1'
+      run: |
+        $ErrorActionPreference = 'Stop'
+        Invoke-RestMethod "https://github.com/jysf/crustyimg/releases/download/${{ steps.resolve.outputs.tag }}/crustyimg-installer.ps1" | Invoke-Expression
+
+    # Add the install dir to PATH for every subsequent step (uniform across the
+    # install and cache-hit paths).
+    - name: Add crustyimg to PATH
+      shell: bash
+      run: echo "${{ runner.tool_cache }}/crustyimg/${{ steps.resolve.outputs.tag }}/bin" >> "$GITHUB_PATH"
