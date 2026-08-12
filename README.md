@@ -62,4 +62,5 @@ and are intentionally **not** done automatically:
 
 ## License
 
-MIT OR Apache-2.0, matching crustyimg.
+Dual-licensed under either [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE) at your
+option, matching crustyimg.
