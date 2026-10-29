@@ -20,7 +20,7 @@ Pin a version (recommended for reproducible CI):
 ```yaml
 - uses: jysf/setup-crustyimg@v1
   with:
-    version: v0.7.0        # a release tag, or "latest" (the default)
+    version: v0.8.0        # a release tag, or "latest" (the default)
 ```
 
 That's it — subsequent steps can call `crustyimg` directly.
@@ -34,7 +34,7 @@ action to run `crustyimg lint` and turn findings into inline PR annotations.
 
 | Input     | Default  | Description |
 |-----------|----------|-------------|
-| `version` | `latest` | crustyimg release to install: a tag like `v0.7.0` (or bare `0.7.0`), or `latest`. |
+| `version` | `latest` | crustyimg release to install: a tag like `v0.8.0` (or bare `0.8.0`), or `latest`. |
 
 ## How it works
 
@@ -55,7 +55,7 @@ No inputs are required; `version: latest` works out of the box.
 
 `v1` is a moving major tag — it always points at the newest `v1.x` release, so
 `uses: jysf/setup-crustyimg@v1` picks up fixes without a workflow edit. Pin an exact release
-(`@v1.0.1`) if you'd rather control upgrades yourself.
+(`@v1.0.2`) if you'd rather control upgrades yourself.
 
 ## License
 
