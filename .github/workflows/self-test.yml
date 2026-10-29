@@ -6,13 +6,15 @@ on:
   workflow_dispatch:
 
 # Validates the action end-to-end on all three OS runners: install a real
-# crustyimg release, then confirm --version + a trivial lint and optimize work.
+# crustyimg release (pinned and `latest`), then confirm --version, the reported
+# version, and that lint and optimize both run.
 jobs:
   install-and-run:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        version: [v0.8.0, latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -20,16 +22,28 @@ jobs:
       - name: Install crustyimg
         uses: ./
         with:
-          version: v0.3.1 # a real, published release (checksum-verified by the installer)
+          version: ${{ matrix.version }}
 
       - name: crustyimg --version
         shell: bash
         run: crustyimg --version
 
-      # This action is generic — it installs the binary, so any crustyimg command
-      # works. We pin v0.3.1 here; `lint` ships in 0.4.0, so we exercise `optimize`
-      # (present in v0.3.1) as the smoke test. With `version: latest` (once 0.4.0
-      # is out) `crustyimg lint` is equally available.
+      # A pinned install must report exactly that version, so a wrong tag or a
+      # stale cache entry can't pass unnoticed.
+      - name: Pinned install reports the pinned version
+        if: matrix.version != 'latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          want="crustyimg ${{ matrix.version }}"
+          want="${want/ v/ }"
+          got="$(crustyimg --version)"
+          [ "$got" = "$want" ] || { echo "expected '$want', got '$got'"; exit 1; }
+
+      - name: lint a clean asset (exit 0)
+        shell: bash
+        run: crustyimg lint test-assets/clean.png
+
       - name: optimize a clean asset (writes an output)
         shell: bash
         run: |
