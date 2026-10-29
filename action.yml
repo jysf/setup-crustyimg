@@ -1,7 +1,7 @@
 name: Setup crustyimg
 description: >-
-  Install the crustyimg image CLI (via its official cargo-dist installer, with
-  checksum verification) and add it to PATH — enabling optimize/convert/lint in CI.
+  Install the crustyimg image CLI on any runner, checksum-verified, and add it
+  to PATH for optimize, convert and lint.
 author: jysf
 branding:
   icon: image
