@@ -30,6 +30,9 @@ That's it — subsequent steps can call `crustyimg` directly.
 See [`jysf/crustyimg-action`](https://github.com/jysf/crustyimg-action), which builds on this
 action to run `crustyimg lint` and turn findings into inline PR annotations.
 
+The [setup guide](https://github.com/jysf/crustyimg/blob/main/docs/github-actions.md) covers both actions end to end, and
+[`jysf/crustyimg-example`](https://github.com/jysf/crustyimg-example) uses both in a live repo.
+
 ## Inputs
 
 | Input     | Default  | Description |
