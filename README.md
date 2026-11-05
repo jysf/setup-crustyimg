@@ -53,12 +53,14 @@ No inputs are required; `version: latest` works out of the box.
 - **Checksum verification** is handled by crustyimg's cargo-dist installer (`verify_checksum`); this
   action does not download raw tarballs or hardcode asset names, so it keeps working across releases.
 - The install is cached under the runner tool-cache, so repeat runs skip the download.
+- The cache step uses `actions/cache@v6`, which runs on Node.js 24. GitHub-hosted runners already
+  support it; a self-hosted runner needs version 2.327.1 or newer.
 
 ## Versioning
 
 `v1` is a moving major tag — it always points at the newest `v1.x` release, so
 `uses: jysf/setup-crustyimg@v1` picks up fixes without a workflow edit. Pin an exact release
-(`@v1.0.3`) if you'd rather control upgrades yourself.
+(`@v1.0.4`) if you'd rather control upgrades yourself.
 
 ## License
 

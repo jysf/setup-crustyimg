@@ -17,7 +17,7 @@ jobs:
         version: [v0.8.0, latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install crustyimg
         uses: ./
